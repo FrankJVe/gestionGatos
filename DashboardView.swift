@@ -34,18 +34,13 @@ struct DashboardContentView: View {
             .shadow(radius: 5)
             .padding(.horizontal)
             
-            // Círculo de prueba directo
+            // Gráfico de Categorías
             VStack {
-                Text("Prueba de Círculo")
+                Text("Distribución por Categorías")
                     .font(.headline)
                 
-                Circle()
-                    .fill(.blue)
-                    .frame(width: 100, height: 100)
-                    .overlay(
-                        Circle()
-                            .stroke(Color.red, lineWidth: 4)
-                    )
+                PieChartView(expenses: viewModel.expenses)
+                    .frame(height: 200)
             }
             .padding()
             .background(Color(.systemBackground))
