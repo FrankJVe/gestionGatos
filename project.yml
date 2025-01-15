@@ -1,0 +1,36 @@
+name: GestionGastos
+options:
+  bundleIdPrefix: com.yourcompany
+  deploymentTarget:
+    iOS: 16.0
+  xcodeVersion: "15.0"
+targets:
+  GestionGastos:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: .
+        excludes:
+          - "project.yml"
+          - "*.xcodeproj"
+          - ".DS_Store"
+    settings:
+      base:
+        INFOPLIST_FILE: Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.GestionGastos
+        DEVELOPMENT_TEAM: "" # Aquí puedes agregar tu Development Team ID si lo tienes
+        TARGETED_DEVICE_FAMILY: 1 # 1 = iPhone, 2 = iPad, "1,2" = Universal
+        SWIFT_VERSION: 5.0
+        IPHONEOS_DEPLOYMENT_TARGET: 16.0
+    info:
+      path: Info.plist
+      properties:
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UILaunchStoryboardName: ""
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations:
+            UIWindowSceneSessionRoleApplication:
+              - UISceneConfigurationName: Default Configuration
+                UISceneDelegateClassName: $(PRODUCT_MODULE_NAME).SceneDelegate
