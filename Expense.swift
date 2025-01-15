@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 
 struct Expense: Identifiable, Codable {
-    var id: UUID
+    let id: UUID
     var title: String
     var amount: Double
     var date: Date

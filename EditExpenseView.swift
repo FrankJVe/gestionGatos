@@ -133,18 +133,17 @@ struct EditExpenseView: View {
         formatter.dateFormat = "HH:mm"
         let timeString = formatter.string(from: time)
         
-        let updatedExpense = Expense(
-            title: title,
-            amount: amountValue,
-            date: date,
-            category: category,
-            type: type,
-            time: timeString,
-            isPending: isPending,
-            repeatOption: repeatOption,
-            sheet: sheet,
-            currency: currency
-        )
+        var updatedExpense = expense
+        updatedExpense.title = title
+        updatedExpense.amount = amountValue
+        updatedExpense.date = date
+        updatedExpense.category = category
+        updatedExpense.type = type
+        updatedExpense.time = timeString
+        updatedExpense.isPending = isPending
+        updatedExpense.repeatOption = repeatOption
+        updatedExpense.sheet = sheet
+        updatedExpense.currency = currency
         
         viewModel.updateExpense(updatedExpense)
         presentationMode.wrappedValue.dismiss()

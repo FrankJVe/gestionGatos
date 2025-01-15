@@ -1,5 +1,6 @@
 import SwiftUI
 
+@available(iOS 13.0, *)
 class AppSettings: ObservableObject {
     @Published var isDarkMode: Bool {
         didSet {

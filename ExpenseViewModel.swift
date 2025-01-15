@@ -30,9 +30,10 @@ class ExpenseViewModel: ObservableObject {
         ),
         
         // GASTOS
+        // Alimentos
         Expense(
             title: "Supermercado Wong",
-            amount: -850.00,
+            amount: 850.00,
             date: Date(),
             category: .alimentos,
             type: .expense,
@@ -43,8 +44,22 @@ class ExpenseViewModel: ObservableObject {
             currency: "PEN"
         ),
         Expense(
-            title: "Luz y Agua",
-            amount: -320.00,
+            title: "Restaurante",
+            amount: 200.00,
+            date: Date(),
+            category: .alimentos,
+            type: .expense,
+            time: "13:00",
+            isPending: false,
+            repeatOption: .never,
+            sheet: "Principal",
+            currency: "PEN"
+        ),
+        
+        // Servicios
+        Expense(
+            title: "Luz",
+            amount: 180.00,
             date: Date(),
             category: .serviciosHogar,
             type: .expense,
@@ -55,10 +70,24 @@ class ExpenseViewModel: ObservableObject {
             currency: "PEN"
         ),
         Expense(
-            title: "Consulta Médica",
-            amount: -180.00,
+            title: "Agua",
+            amount: 140.00,
             date: Date(),
-            category: .salud,
+            category: .serviciosHogar,
+            type: .expense,
+            time: "14:00",
+            isPending: false,
+            repeatOption: .monthly,
+            sheet: "Principal",
+            currency: "PEN"
+        ),
+        
+        // Transporte
+        Expense(
+            title: "Gasolina",
+            amount: 300.00,
+            date: Date(),
+            category: .transporte,
             type: .expense,
             time: "16:00",
             isPending: false,
@@ -67,46 +96,10 @@ class ExpenseViewModel: ObservableObject {
             currency: "PEN"
         ),
         Expense(
-            title: "Pasajes Metro",
-            amount: -100.00,
+            title: "Taxi",
+            amount: 150.00,
             date: Date(),
             category: .transporte,
-            type: .expense,
-            time: "08:00",
-            isPending: false,
-            repeatOption: .monthly,
-            sheet: "Principal",
-            currency: "PEN"
-        ),
-        Expense(
-            title: "Netflix y Spotify",
-            amount: -45.00,
-            date: Date(),
-            category: .entretenimiento,
-            type: .expense,
-            time: "00:00",
-            isPending: false,
-            repeatOption: .monthly,
-            sheet: "Principal",
-            currency: "PEN"
-        ),
-        Expense(
-            title: "Curso Udemy",
-            amount: -200.00,
-            date: Date(),
-            category: .educacion,
-            type: .expense,
-            time: "20:00",
-            isPending: false,
-            repeatOption: .never,
-            sheet: "Principal",
-            currency: "PEN"
-        ),
-        Expense(
-            title: "Ropa H&M",
-            amount: -250.00,
-            date: Date(),
-            category: .vestimenta,
             type: .expense,
             time: "17:00",
             isPending: false,
@@ -114,37 +107,69 @@ class ExpenseViewModel: ObservableObject {
             sheet: "Principal",
             currency: "PEN"
         ),
+        
+        // Entretenimiento
         Expense(
-            title: "MacBook Pro Cuota",
-            amount: -500.00,
+            title: "Netflix",
+            amount: 45.00,
             date: Date(),
-            category: .tecnologia,
+            category: .entretenimiento,
             type: .expense,
-            time: "13:00",
+            time: "18:00",
             isPending: false,
             repeatOption: .monthly,
             sheet: "Principal",
             currency: "PEN"
         ),
         Expense(
-            title: "Veterinario y Alimento",
-            amount: -180.00,
+            title: "Cine",
+            amount: 80.00,
+            date: Date(),
+            category: .entretenimiento,
+            type: .expense,
+            time: "19:00",
+            isPending: false,
+            repeatOption: .never,
+            sheet: "Principal",
+            currency: "PEN"
+        ),
+        
+        // Educación
+        Expense(
+            title: "Curso Online",
+            amount: 500.00,
+            date: Date(),
+            category: .educacion,
+            type: .expense,
+            time: "10:00",
+            isPending: false,
+            repeatOption: .never,
+            sheet: "Principal",
+            currency: "PEN"
+        ),
+        
+        // Salud
+        Expense(
+            title: "Consulta Médica",
+            amount: 250.00,
+            date: Date(),
+            category: .salud,
+            type: .expense,
+            time: "11:00",
+            isPending: false,
+            repeatOption: .never,
+            sheet: "Principal",
+            currency: "PEN"
+        ),
+        
+        // Mascota
+        Expense(
+            title: "Comida Mascota",
+            amount: 180.00,
             date: Date(),
             category: .mascota,
             type: .expense,
-            time: "11:30",
-            isPending: false,
-            repeatOption: .monthly,
-            sheet: "Principal",
-            currency: "PEN"
-        ),
-        Expense(
-            title: "Ahorro Mensual",
-            amount: -1000.00,
-            date: Date(),
-            category: .ahorro,
-            type: .expense,
-            time: "00:00",
+            time: "12:00",
             isPending: false,
             repeatOption: .monthly,
             sheet: "Principal",
@@ -153,20 +178,32 @@ class ExpenseViewModel: ObservableObject {
     ]
     
     var totalBalance: Double {
-        expenses.reduce(0) { $0 + $1.amount }
+        expenses.reduce(0) { total, expense in
+            total + (expense.type == .income ? expense.amount : -expense.amount)
+        }
     }
     
     var totalIncome: Double {
-        expenses.filter { $0.amount > 0 }.reduce(0) { $0 + $1.amount }
+        expenses.filter { $0.type == .income }.reduce(0) { $0 + $1.amount }
     }
     
     var totalExpenses: Double {
-        expenses.filter { $0.amount < 0 }.reduce(0) { $0 + $1.amount }
+        expenses.filter { $0.type == .expense }.reduce(0) { $0 + abs($1.amount) }
+    }
+    
+    var balanceIsPositive: Bool {
+        totalBalance >= 0
+    }
+    
+    var balancePercentage: Double {
+        let previousMonthBalance = calculatePreviousMonthBalance()
+        guard previousMonthBalance != 0 else { return 0 }
+        return ((totalBalance - previousMonthBalance) / abs(previousMonthBalance)) * 100
     }
     
     var expensesByCategory: [Expense.Category: Double] {
         var result: [Expense.Category: Double] = [:]
-        for expense in expenses where expense.amount < 0 {
+        for expense in expenses where expense.type == .expense {
             result[expense.category, default: 0] += abs(expense.amount)
         }
         return result
@@ -174,30 +211,45 @@ class ExpenseViewModel: ObservableObject {
     
     func addExpense(_ expense: Expense) {
         expenses.append(expense)
-        // Aquí podrías agregar persistencia de datos
+        sortExpenses()
     }
     
-    func deleteExpense(_ expense: Expense) {
-        expenses.removeAll { $0.id == expense.id }
-        // Aquí podrías agregar persistencia de datos
+    func deleteExpense(at indexSet: IndexSet) {
+        expenses.remove(atOffsets: indexSet)
+        sortExpenses()
     }
     
-    func updateExpense(_ expense: Expense) {
-        if let index = expenses.firstIndex(where: { $0.id == expense.id }) {
-            expenses[index] = expense
+    func updateExpense(_ updatedExpense: Expense) {
+        if let index = expenses.firstIndex(where: { $0.id == updatedExpense.id }) {
+            expenses[index] = updatedExpense
         }
     }
     
-    func deleteExpense(at offsets: IndexSet) {
-        expenses.remove(atOffsets: offsets)
+    func getExpensesByCategory() -> [(category: Expense.Category, amount: Double)] {
+        var expensesByCategory: [Expense.Category: Double] = [:]
+        
+        for expense in expenses where expense.type == .expense {
+            expensesByCategory[expense.category, default: 0] += abs(expense.amount)
+        }
+        
+        return expensesByCategory.map { ($0.key, $0.value) }
+            .sorted { $0.1 > $1.1 }
     }
     
-    init() {
-        // Datos de prueba
-        expenses = [
-            Expense(title: "Supermercado Wong", amount: -850.00, date: Date(), category: .alimentos, type: .expense, time: "10:00", isPending: false, repeatOption: .never, sheet: "Principal", currency: "PEN"),
-            Expense(title: "Luz y Agua", amount: -320.00, date: Date(), category: .serviciosHogar, type: .expense, time: "11:00", isPending: false, repeatOption: .never, sheet: "Principal", currency: "PEN"),
-            Expense(title: "Sueldo Mensual", amount: 5000.00, date: Date(), category: .otros, type: .income, time: "12:00", isPending: false, repeatOption: .never, sheet: "Principal", currency: "PEN")
-        ]
+    private func sortExpenses() {
+        expenses.sort { $0.date > $1.date }
+    }
+    
+    private func calculatePreviousMonthBalance() -> Double {
+        let calendar = Calendar.current
+        guard let previousMonth = calendar.date(byAdding: .month, value: -1, to: Date()) else {
+            return 0
+        }
+        
+        return expenses.filter { expense in
+            calendar.isDate(expense.date, equalTo: previousMonth, toGranularity: .month)
+        }.reduce(0) { total, expense in
+            total + (expense.type == .income ? expense.amount : -expense.amount)
+        }
     }
 }

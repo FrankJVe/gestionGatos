@@ -3,31 +3,35 @@ import SwiftUI
 // Vista de la Tarjeta de Balance
 struct BalanceCardView: View {
     let balance: Double
-    let monthlyComparison: Double
+    let isPositive: Bool
+    let percentage: Double
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: 8) {
             Text("Balance Total")
-                .font(.headline)
+                .font(.subheadline)
                 .foregroundColor(.gray)
-            
             Text("S/ \(balance, specifier: "%.2f")")
                 .font(.system(size: 34, weight: .bold))
-                .foregroundColor(balance >= 0 ? .green : .red)
             
             HStack {
-                Image(systemName: monthlyComparison >= 0 ? "arrow.up.right" : "arrow.down.right")
-                Text("\(abs(monthlyComparison), specifier: "%.1f")% vs mes anterior")
+                Text("Este mes")
                     .font(.caption)
+                    .foregroundColor(.gray)
+                Spacer()
+                Image(systemName: isPositive ? "arrow.up.right" : "arrow.down.right")
+                    .foregroundColor(isPositive ? .green : .red)
+                Text("\(percentage, specifier: "%.1f")%")
+                    .font(.caption)
+                    .foregroundColor(isPositive ? .green : .red)
             }
-            .foregroundColor(monthlyComparison >= 0 ? .green : .red)
         }
         .padding()
-        .frame(maxWidth: .infinity)
         .background(Color(.systemBackground))
-        .cornerRadius(15)
-        .shadow(radius: 5)
-        .padding(.horizontal)
+        .cornerRadius(12)
+        .shadow(color: Color.white.opacity(0.3), radius: 4, x: 0, y: 0)
+        .shadow(color: Color.white.opacity(0.2), radius: 8, x: 0, y: 0)
+        .padding(.horizontal, 8)
     }
 }
 
@@ -35,83 +39,26 @@ struct BalanceCardView: View {
 struct TransactionCardView: View {
     let title: String
     let amount: Double
-    let icon: String
-    let color: Color
+    let isIncome: Bool
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Image(systemName: icon)
-                    .foregroundColor(color)
+                Image(systemName: isIncome ? "arrow.down.left" : "arrow.up.right")
+                    .foregroundColor(isIncome ? .green : .red)
                 Text(title)
-                    .font(.headline)
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
             }
-            
             Text("S/ \(amount, specifier: "%.2f")")
-                .font(.title3)
-                .bold()
+                .font(.headline)
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.systemBackground))
-        .cornerRadius(15)
-        .shadow(radius: 5)
-    }
-}
-
-// Vista de Distribución de Gastos
-struct ExpenseDistributionView: View {
-    @ObservedObject var viewModel: ExpenseViewModel
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Distribución de Gastos")
-                .font(.headline)
-                .padding(.horizontal)
-            
-            // TODO: Implementar gráfico de distribución
-            Text("Gráfico en desarrollo")
-                .frame(maxWidth: .infinity, alignment: .center)
-        }
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(15)
-        .shadow(radius: 5)
-    }
-}
-
-// Vista de Transacciones Recientes
-struct RecentTransactionsView: View {
-    @ObservedObject var viewModel: ExpenseViewModel
-    
-    var recentTransactions: [Expense] {
-        viewModel.expenses
-            .sorted { $0.date > $1.date }
-            .prefix(5)
-            .map { $0 }
-    }
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Últimos Movimientos")
-                .font(.headline)
-                .padding(.horizontal)
-            
-            ForEach(recentTransactions) { expense in
-                TransactionRowView(expense: expense)
-                    .padding(.horizontal)
-                
-                if expense.id != recentTransactions.last?.id {
-                    Divider()
-                        .padding(.horizontal)
-                }
-            }
-        }
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(15)
-        .shadow(radius: 5)
-        .padding(.horizontal)
+        .cornerRadius(12)
+        .shadow(color: Color.white.opacity(0.3), radius: 4, x: 0, y: 0)
+        .shadow(color: Color.white.opacity(0.2), radius: 8, x: 0, y: 0)
     }
 }
 
@@ -121,23 +68,82 @@ struct TransactionRowView: View {
     
     var body: some View {
         HStack {
-            Image(systemName: expense.type == .income ? "arrow.down.circle.fill" : "arrow.up.circle.fill")
-                .foregroundColor(expense.type == .income ? .green : expense.category.color)
-                .font(.title2)
+            Image(systemName: expense.category.icon)
+                .foregroundColor(.white)
+                .frame(width: 32, height: 32)
+                .background(expense.category.color)
+                .cornerRadius(8)
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading) {
                 Text(expense.title)
-                    .font(.body)
-                Text(expense.date.formatted(date: .abbreviated, time: .shortened))
+                Text(expense.category.rawValue)
                     .font(.caption)
                     .foregroundColor(.gray)
             }
             
             Spacer()
             
-            Text("S/ \(expense.amount, specifier: "%.2f")")
-                .font(.body)
-                .foregroundColor(expense.type == .income ? .green : .primary)
+            VStack(alignment: .trailing) {
+                Text("S/ \(expense.amount, specifier: "%.2f")")
+                    .foregroundColor(expense.type == .income ? .green : .primary)
+                Text(expense.date.formatted(date: .abbreviated, time: .omitted))
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
         }
+        .padding(.horizontal)
+    }
+}
+
+// Vista de Transacciones Recientes
+struct RecentTransactionsListView: View {
+    let expenses: [Expense]
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 15) {
+            Text("Movimientos Recientes")
+                .font(.headline)
+                .padding(.horizontal)
+            
+            if expenses.isEmpty {
+                Text("No hay movimientos registrados")
+                    .foregroundColor(.gray)
+                    .padding()
+            } else {
+                ForEach(Array(expenses.prefix(5).enumerated()), id: \.element.id) { index, expense in
+                    TransactionRowView(expense: expense)
+                    
+                    if index < expenses.prefix(5).count - 1 {
+                        Divider()
+                            .padding(.horizontal)
+                    }
+                }
+            }
+        }
+        .padding(.vertical)
+        .background(Color(.systemBackground))
+        .cornerRadius(12)
+        .shadow(color: Color.white.opacity(0.3), radius: 4, x: 0, y: 0)
+        .shadow(color: Color.white.opacity(0.2), radius: 8, x: 0, y: 0)
+        .padding(.horizontal, 8)
+    }
+}
+
+// Vista de Distribución de Gastos
+struct ExpenseDistributionView: View {
+    let expenses: [Expense]
+    
+    var body: some View {
+        VStack {
+            Text("Distribución por Categorías")
+                .font(.headline)
+            
+            PieChartView(expenses: expenses)
+                .frame(height: 200)
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(15)
+        .shadow(radius: 5)
     }
 }
