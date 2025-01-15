@@ -64,17 +64,17 @@ struct Expense: Identifiable, Codable {
         
         var color: Color {
             switch self {
-            case .alimentos: return .teal
-            case .serviciosHogar: return .blue
+            case .alimentos: return .blue
+            case .serviciosHogar: return .purple
             case .salud: return .red
             case .transporte: return .orange
-            case .entretenimiento: return .purple
-            case .educacion: return .indigo
-            case .vestimenta: return .pink
-            case .tecnologia: return .gray
-            case .mascota: return .brown
-            case .ahorro: return .green
-            case .otros: return Color(UIColor.systemGray2)
+            case .entretenimiento: return .pink
+            case .educacion: return .green
+            case .vestimenta: return .yellow
+            case .tecnologia: return .indigo
+            case .mascota: return .mint
+            case .ahorro: return .teal
+            case .otros: return .gray
             }
         }
     }

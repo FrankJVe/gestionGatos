@@ -1,3 +1,4 @@
+// AppSettings.swift
 import SwiftUI
 
 // Importar AppSettings
@@ -13,6 +14,9 @@ class AppSettings: ObservableObject {
         self.isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
     }
 }
+
+// CategoryDetailView.swift
+import SwiftUI
 
 struct CategoryDetailView: View {
     let category: Expense.Category
@@ -62,259 +66,109 @@ struct CategoryDetailView: View {
     }
 }
 
+// ContentView.swift
+import SwiftUI
+
+struct DashboardView: View {
+    @ObservedObject var viewModel: ExpenseViewModel
+    @Environment(\.colorScheme) private var colorScheme
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                // Balance Card
+                VStack(spacing: 8) {
+                    Text("Balance Total")
+                        .font(.headline)
+                        .foregroundColor(.gray)
+                    
+                    Text("S/ \(viewModel.totalBalance, specifier: "%.2f")")
+                        .font(.system(size: 40, weight: .bold))
+                        .foregroundColor(viewModel.totalBalance >= 0 ? .green : .red)
+                }
+            }
+            .padding(.vertical)
+        }
+    }
+}
+
 struct ContentView: View {
     @ObservedObject var viewModel: ExpenseViewModel
     @StateObject private var settings = AppSettings()
     @State private var showingAddExpense = false
     @State private var showingStats = false
-    @State private var selectedTransactionType: Expense.TransactionType = .expense
-    @State private var selectedCategory: Expense.Category?
-    @State private var showingCategoryDetail = false
-    @Environment(\.colorScheme) private var colorScheme
-    
-    var totalIncome: Double {
-        viewModel.expenses.filter { $0.type == .income }.reduce(0) { $0 + $1.amount }
-    }
-    
-    var totalExpenses: Double {
-        viewModel.expenses.filter { $0.type == .expense }.reduce(0) { $0 + $1.amount }
-    }
-    
-    var balance: Double {
-        totalIncome - totalExpenses
-    }
-    
-    private var headerBackgroundColor: Color {
-        settings.isDarkMode ? Color.indigo.opacity(0.8) : Color.indigo
-    }
-    
-    private var backgroundColor: Color {
-        settings.isDarkMode ? Color(.systemGray6) : Color.white
-    }
-    
-    private var secondaryBackgroundColor: Color {
-        settings.isDarkMode ? Color(.systemGray5) : Color(.secondarySystemBackground)
-    }
-    
-    private var textColor: Color {
-        settings.isDarkMode ? .white : .black
-    }
+    @State private var selectedTab = 0
     
     var body: some View {
-        NavigationView {
-            ZStack(alignment: .top) {
-                backgroundColor
-                    .ignoresSafeArea()
-                
-                VStack(spacing: 0) {
-                    // Header con fecha
-                    HStack {
-                        Text(Date().formatted(date: .abbreviated, time: .omitted))
-                            .font(.title3)
-                            .foregroundColor(.white)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .background(headerBackgroundColor)
-                    
-                    // Gráfico circular
-                    ZStack {
-                        Circle()
-                            .stroke(Color.gray.opacity(0.2), lineWidth: 25)
-                            .frame(width: 220, height: 220)
-                        
-                        // Ingresos (verde)
-                        Circle()
-                            .trim(from: 0, to: totalIncome / (totalIncome + totalExpenses))
-                            .stroke(
-                                Color.green,
-                                style: StrokeStyle(
-                                    lineWidth: 25,
-                                    lineCap: .butt
-                                )
-                            )
-                            .rotationEffect(.degrees(-90))
-                            .frame(width: 220, height: 220)
-                        
-                        // Gastos por categoría
-                        ForEach(getCategoryStats().indices, id: \.self) { index in
-                            let stat = getCategoryStats()[index]
-                            let startAngle = getStartAngle(index: index)
-                            let endAngle = getEndAngle(index: index)
-                            
-                            Circle()
-                                .trim(from: startAngle, to: endAngle)
-                                .stroke(
-                                    stat.category.color,
-                                    style: StrokeStyle(
-                                        lineWidth: 25,
-                                        lineCap: .butt
-                                    )
-                                )
-                                .rotationEffect(.degrees(-90))
-                                .frame(width: 220, height: 220)
-                        }
-                        
-                        // Total en el centro
-                        VStack(spacing: 4) {
-                            Text("Balance")
-                                .font(.title3)
-                                .foregroundColor(.gray)
-                            Text("S/ \(abs(balance), specifier: "%.2f")")
-                                .font(.system(size: 26, weight: .bold))
-                                .foregroundColor(balance >= 0 ? .green : .red)
-                        }
-                    }
-                    .frame(height: 240)
-                    .padding(.vertical, 10)
-                    
-                    // Selector de tipo de transacción
-                    Picker("", selection: $selectedTransactionType) {
-                        Text("Gasto").tag(Expense.TransactionType.expense)
-                        Text("Ingreso").tag(Expense.TransactionType.income)
-                    }
-                    .pickerStyle(SegmentedPickerStyle())
-                    .padding(.horizontal)
-                    .padding(.bottom, 4)
-                    
-                    // Lista de categorías o balance
-                    VStack(spacing: 0) {
-                        if selectedTransactionType == .expense {
-                            // Vista de gastos por categoría
-                            HStack(alignment: .center) {
-                                Text("Total Gastos")
-                                    .font(.headline)
-                                    .frame(width: 120, alignment: .leading)
-                                
-                                Spacer()
-                                
-                                Text("S/ \(totalExpenses, specifier: "%.2f")")
-                                    .font(.headline)
-                                    .foregroundColor(.red)
+        TabView(selection: $selectedTab) {
+            NavigationView {
+                DashboardView(viewModel: viewModel)
+                    .navigationTitle("Mi Dinero")
+                    .navigationBarItems(
+                        leading: HStack(spacing: 16) {
+                            Button(action: { showingStats = true }) {
+                                Image(systemName: "chart.bar.fill")
+                                    .font(.title2)
+                                    .foregroundColor(.indigo)
                             }
-                            .padding(.horizontal)
-                            .padding(.vertical, 12)
-                            .background(backgroundColor)
                             
-                            Divider()
-                            
-                            ScrollView {
-                                LazyVStack(spacing: 0) {
-                                    ForEach(getCategoryStats(), id: \.category) { stat in
-                                        Button(action: {
-                                            showCategoryDetail(stat.category)
-                                        }) {
-                                            VStack(spacing: 0) {
-                                                HStack(alignment: .center) {
-                                                    HStack(spacing: 12) {
-                                                        Image(systemName: stat.category.icon)
-                                                            .foregroundColor(stat.category.color)
-                                                            .frame(width: 24)
-                                                        
-                                                        Text(stat.category.rawValue)
-                                                            .font(.system(.body))
-                                                            .foregroundColor(textColor)
-                                                    }
-                                                    .frame(width: 160, alignment: .leading)
-                                                    
-                                                    Spacer()
-                                                    
-                                                    Text("S/ \(abs(stat.amount), specifier: "%.2f")")
-                                                        .font(.system(.body))
-                                                        .foregroundColor(textColor)
-                                                }
-                                                .padding(.horizontal)
-                                                .padding(.vertical, 12)
-                                                
-                                                Divider()
-                                            }
-                                            .background(backgroundColor)
-                                        }
-                                        .buttonStyle(PlainButtonStyle())
-                                    }
-                                }
+                            Button(action: { settings.isDarkMode.toggle() }) {
+                                Image(systemName: settings.isDarkMode ? "moon.fill" : "moon")
+                                    .font(.title2)
+                                    .foregroundColor(.indigo)
                             }
-                        } else {
-                            // Vista de ingresos y balance
-                            ScrollView {
-                                LazyVStack(spacing: 0) {
-                                    // Total Ingresos
-                                    HStack(alignment: .center) {
-                                        Text("Total Ingresos")
-                                            .font(.headline)
-                                            .frame(width: 120, alignment: .leading)
-                                            .foregroundColor(textColor)
-                                        
-                                        Spacer()
-                                        
-                                        Text("S/ \(totalIncome, specifier: "%.2f")")
-                                            .font(.headline)
-                                            .foregroundColor(.green)
-                                    }
-                                    .padding(.horizontal)
-                                    .padding(.vertical, 12)
-                                    .background(backgroundColor)
-                                    
-                                    Divider()
-                                    
-                                    // Lista de ingresos
-                                    ForEach(viewModel.expenses.filter { $0.type == .income }.sorted(by: { $0.date > $1.date }), id: \.id) { income in
-                                        VStack(spacing: 0) {
-                                            HStack(alignment: .center) {
-                                                VStack(alignment: .leading, spacing: 4) {
-                                                    Text(income.title)
-                                                        .font(.system(.body))
-                                                        .foregroundColor(textColor)
-                                                    
-                                                    Text(income.date.formatted(date: .abbreviated, time: .shortened))
-                                                        .font(.caption)
-                                                        .foregroundColor(.gray)
-                                                }
-                                                
-                                                Spacer()
-                                                
-                                                Text("S/ \(income.amount, specifier: "%.2f")")
-                                                    .font(.system(.body))
-                                                    .foregroundColor(.green)
-                                            }
-                                            .padding(.horizontal)
-                                            .padding(.vertical, 12)
-                                            
-                                            Divider()
-                                        }
-                                        .background(backgroundColor)
-                                    }
-                                }
-                            }
-                            .background(secondaryBackgroundColor)
+                        },
+                        trailing: Button(action: { showingAddExpense = true }) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.title2)
+                                .foregroundColor(.indigo)
                         }
-                    }
-                    .background(secondaryBackgroundColor)
-                }
+                    )
             }
-            .navigationBarItems(
-                leading: HStack(spacing: 16) {
-                    Button(action: { showingStats = true }) {
-                        Image(systemName: "ellipsis")
-                            .font(.title2)
-                            .foregroundColor(.white)
-                    }
-                    
-                    Button(action: { settings.isDarkMode.toggle() }) {
-                        Image(systemName: settings.isDarkMode ? "sun.max.fill" : "moon.fill")
-                            .font(.title2)
-                            .foregroundColor(.white)
-                    }
-                }
-                .padding(.horizontal, -8),
-                
-                trailing: Button(action: { showingAddExpense = true }) {
-                    Image(systemName: "plus")
-                        .font(.title2)
-                        .foregroundColor(.white)
-                }
-                .padding(.horizontal, -8)
-            )
+            .tabItem {
+                Image(systemName: "house.fill")
+                Text("Inicio")
+            }
+            .tag(0)
+            
+            NavigationView {
+                Text("Movimientos")
+                    .navigationTitle("Movimientos")
+            }
+            .tabItem {
+                Image(systemName: "list.bullet")
+                Text("Movimientos")
+            }
+            .tag(1)
+            
+            NavigationView {
+                Text("Presupuestos")
+                    .navigationTitle("Presupuestos")
+            }
+            .tabItem {
+                Image(systemName: "doc.text.fill")
+                Text("Presupuestos")
+            }
+            .tag(2)
+            
+            NavigationView {
+                StatsView(viewModel: viewModel)
+            }
+            .tabItem {
+                Image(systemName: "chart.pie.fill")
+                Text("Análisis")
+            }
+            .tag(3)
+            
+            NavigationView {
+                Text("Explorar")
+                    .navigationTitle("Explorar")
+            }
+            .tabItem {
+                Image(systemName: "magnifyingglass")
+                Text("Explorar")
+            }
+            .tag(4)
         }
         .preferredColorScheme(settings.isDarkMode ? .dark : .light)
         .sheet(isPresented: $showingAddExpense) {
@@ -323,15 +177,176 @@ struct ContentView: View {
         .sheet(isPresented: $showingStats) {
             StatsView(viewModel: viewModel)
         }
-        .sheet(isPresented: $showingCategoryDetail) {
-            if let category = selectedCategory {
-                CategoryDetailView(
-                    category: category,
-                    expenses: getExpensesForCategory(category)
-                )
+    }
+}
+
+struct PieChartView: View {
+    let expenses: [Expense]
+    
+    private var expensesByCategory: [Expense.Category: Double] {
+        var result: [Expense.Category: Double] = [:]
+        for expense in expenses where expense.type == .expense {
+            result[expense.category, default: 0] += expense.amount
+        }
+        return result
+    }
+    
+    private var totalExpenses: Double {
+        expensesByCategory.values.reduce(0, +)
+    }
+    
+    var body: some View {
+        GeometryReader { geometry in
+            let radius = min(geometry.size.width, geometry.size.height) / 2
+            let center = CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2)
+            
+            ZStack {
+                ForEach(Array(expensesByCategory.keys.enumerated()), id: \.element) { index, category in
+                    let value = expensesByCategory[category] ?? 0
+                    let percentage = value / totalExpenses
+                    let startAngle = getStartAngle(for: index)
+                    let endAngle = startAngle + percentage * 360
+                    
+                    Path { path in
+                        path.move(to: center)
+                        path.addArc(
+                            center: center,
+                            radius: radius,
+                            startAngle: .degrees(startAngle - 90),
+                            endAngle: .degrees(endAngle - 90),
+                            clockwise: false
+                        )
+                        path.closeSubpath()
+                    }
+                    .fill(category.color)
+                }
             }
         }
     }
+    
+    private func getStartAngle(for index: Int) -> Double {
+        var startAngle = 0.0
+        for i in 0..<index {
+            let category = Array(expensesByCategory.keys)[i]
+            let value = expensesByCategory[category] ?? 0
+            startAngle += (value / totalExpenses) * 360
+        }
+        return startAngle
+    }
+}
+
+struct MainDashboardView: View {
+    @ObservedObject var viewModel: ExpenseViewModel
+    @Environment(\.colorScheme) private var colorScheme
+    
+    private var totalIncome: Double {
+        viewModel.expenses.filter { $0.type == .income }.reduce(0) { $0 + $1.amount }
+    }
+    
+    private var totalExpenses: Double {
+        viewModel.expenses.filter { $0.type == .expense }.reduce(0) { $0 + $1.amount }
+    }
+    
+    private var balance: Double {
+        totalIncome - totalExpenses
+    }
+    
+    private var monthlyComparison: Double {
+        // TODO: Implementar comparación con mes anterior
+        return 0.0
+    }
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                BalanceCardView(balance: balance, monthlyComparison: monthlyComparison)
+                
+                HStack(spacing: 16) {
+                    TransactionCardView(
+                        title: "Ingresos",
+                        amount: totalIncome,
+                        icon: "arrow.down.circle.fill",
+                        color: .green
+                    )
+                    
+                    TransactionCardView(
+                        title: "Gastos",
+                        amount: totalExpenses,
+                        icon: "arrow.up.circle.fill",
+                        color: .red
+                    )
+                }
+                .padding(.horizontal)
+                
+                ExpenseDistributionView(viewModel: viewModel)
+                    .frame(height: 300)
+                    .padding()
+                
+                RecentTransactionsView(viewModel: viewModel)
+            }
+        }
+    }
+}
+
+struct BalanceCardView: View {
+    let balance: Double
+    let monthlyComparison: Double
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            Text("Balance Total")
+                .font(.headline)
+                .foregroundColor(.gray)
+            
+            Text("S/ \(balance, specifier: "%.2f")")
+                .font(.system(size: 34, weight: .bold))
+                .foregroundColor(balance >= 0 ? .green : .red)
+            
+            HStack {
+                Image(systemName: monthlyComparison >= 0 ? "arrow.up.right" : "arrow.down.right")
+                Text("\(abs(monthlyComparison), specifier: "%.1f")% vs mes anterior")
+                    .font(.caption)
+            }
+            .foregroundColor(monthlyComparison >= 0 ? .green : .red)
+        }
+        .padding()
+        .frame(maxWidth: .infinity)
+        .background(Color(.systemBackground))
+        .cornerRadius(15)
+        .shadow(radius: 5)
+        .padding(.horizontal)
+    }
+}
+
+struct TransactionCardView: View {
+    let title: String
+    let amount: Double
+    let icon: String
+    let color: Color
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: icon)
+                    .foregroundColor(color)
+                Text(title)
+                    .font(.headline)
+            }
+            
+            Text("S/ \(amount, specifier: "%.2f")")
+                .font(.title3)
+                .bold()
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.systemBackground))
+        .cornerRadius(15)
+        .shadow(radius: 5)
+    }
+}
+
+struct ExpenseDistributionView: View {
+    @ObservedObject var viewModel: ExpenseViewModel
     
     private struct CategoryStat {
         let category: Expense.Category
@@ -339,7 +354,7 @@ struct ContentView: View {
         let percentage: Double
     }
     
-    private func getCategoryStats() -> [CategoryStat] {
+    private var categoryStats: [CategoryStat] {
         let expenses = viewModel.expenses.filter { $0.type == .expense }
         let totalExpenseAmount = expenses.reduce(0) { $0 + $1.amount }
         
@@ -357,29 +372,161 @@ struct ContentView: View {
         }.sorted { $0.amount > $1.amount }
     }
     
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Distribución de Gastos")
+                .font(.headline)
+                .padding(.horizontal)
+            
+            // Gráfico circular
+            ZStack {
+                ForEach(categoryStats.indices, id: \.self) { index in
+                    let stat = categoryStats[index]
+                    let startAngle = getStartAngle(index: index)
+                    let endAngle = startAngle + stat.percentage
+                    
+                    PieSliceView(
+                        startAngle: startAngle * 360,
+                        endAngle: endAngle * 360,
+                        color: stat.category.color
+                    )
+                }
+                
+                // Centro del gráfico con el total
+                VStack(spacing: 4) {
+                    Text("Total Gastos")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                    Text("S/ \(categoryStats.reduce(0) { $0 + $1.amount }, specifier: "%.2f")")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                }
+            }
+            .frame(height: 200)
+            .padding()
+            
+            // Lista de categorías con porcentajes
+            VStack(spacing: 12) {
+                ForEach(categoryStats, id: \.category) { stat in
+                    HStack {
+                        Circle()
+                            .fill(stat.category.color)
+                            .frame(width: 12, height: 12)
+                        
+                        Text(stat.category.rawValue)
+                            .font(.subheadline)
+                        
+                        Spacer()
+                        
+                        Text("S/ \(stat.amount, specifier: "%.2f")")
+                            .font(.subheadline)
+                        
+                        Text("(\(stat.percentage * 100, specifier: "%.1f")%)")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                }
+            }
+            .padding(.horizontal)
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(15)
+        .shadow(radius: 5)
+    }
+    
     private func getStartAngle(index: Int) -> Double {
-        let totalExpenseAmount = totalExpenses
-        let incomeRatio = totalIncome / (totalIncome + totalExpenseAmount)
-        
-        let stats = getCategoryStats()
         var sum = 0.0
         for i in 0..<index {
-            sum += stats[i].percentage
+            sum += categoryStats[i].percentage
         }
-        return incomeRatio + (sum * (1 - incomeRatio))
+        return sum
+    }
+}
+
+struct PieSliceView: View {
+    let startAngle: Double
+    let endAngle: Double
+    let color: Color
+    
+    var body: some View {
+        GeometryReader { geometry in
+            Path { path in
+                let center = CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                let radius = min(geometry.size.width, geometry.size.height) / 2
+                
+                path.move(to: center)
+                path.addArc(
+                    center: center,
+                    radius: radius,
+                    startAngle: .degrees(startAngle - 90),
+                    endAngle: .degrees(endAngle - 90),
+                    clockwise: false
+                )
+                path.closeSubpath()
+            }
+            .fill(color)
+        }
+    }
+}
+
+struct RecentTransactionsView: View {
+    @ObservedObject var viewModel: ExpenseViewModel
+    
+    var recentTransactions: [Expense] {
+        viewModel.expenses
+            .sorted { $0.date > $1.date }
+            .prefix(5)
+            .map { $0 }
     }
     
-    private func getEndAngle(index: Int) -> Double {
-        getStartAngle(index: index) + (getCategoryStats()[index].percentage * (1 - (totalIncome / (totalIncome + totalExpenses))))
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Últimos Movimientos")
+                .font(.headline)
+                .padding(.horizontal)
+            
+            ForEach(recentTransactions) { expense in
+                TransactionRowView(expense: expense)
+                    .padding(.horizontal)
+                
+                if expense.id != recentTransactions.last?.id {
+                    Divider()
+                        .padding(.horizontal)
+                }
+            }
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(15)
+        .shadow(radius: 5)
+        .padding(.horizontal)
     }
+}
+
+struct TransactionRowView: View {
+    let expense: Expense
     
-    private func showCategoryDetail(_ category: Expense.Category) {
-        selectedCategory = category
-        showingCategoryDetail = true
-    }
-    
-    private func getExpensesForCategory(_ category: Expense.Category) -> [Expense] {
-        viewModel.expenses.filter { $0.type == .expense && $0.category == category }
+    var body: some View {
+        HStack {
+            Image(systemName: expense.type == .income ? "arrow.down.circle.fill" : "arrow.up.circle.fill")
+                .foregroundColor(expense.type == .income ? .green : expense.category.color)
+                .font(.title2)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(expense.title)
+                    .font(.body)
+                Text(expense.date.formatted(date: .abbreviated, time: .shortened))
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+            
+            Spacer()
+            
+            Text("S/ \(expense.amount, specifier: "%.2f")")
+                .font(.body)
+                .foregroundColor(expense.type == .income ? .green : .primary)
+        }
     }
 }
 

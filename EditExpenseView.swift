@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct EditExpenseView: View {
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.presentationMode) var presentationMode
     @Environment(\.colorScheme) private var colorScheme
     @ObservedObject var viewModel: ExpenseViewModel
     let expense: Expense
@@ -60,7 +60,7 @@ struct EditExpenseView: View {
                     TextField("Título", text: $title)
                     
                     HStack {
-                        Text("S/")
+                        Text(currency)
                         TextField("Monto", text: $amount)
                             .keyboardType(.decimalPad)
                     }
@@ -100,16 +100,18 @@ struct EditExpenseView: View {
             .navigationTitle("Editar Registro")
             .navigationBarItems(
                 leading: Button("Cancelar") {
-                    dismiss()
+                    presentationMode.wrappedValue.dismiss()
                 },
                 trailing: Button("Guardar") {
                     saveExpense()
                 }
             )
-            .alert("Error", isPresented: $showingAlert) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text(alertMessage)
+            .alert(isPresented: $showingAlert) {
+                Alert(
+                    title: Text("Error"),
+                    message: Text(alertMessage),
+                    dismissButton: .default(Text("OK"))
+                )
             }
         }
     }
@@ -127,13 +129,15 @@ struct EditExpenseView: View {
             return
         }
         
-        let timeString = time.formatted(date: .omitted, time: .shortened)
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        let timeString = formatter.string(from: time)
         
         let updatedExpense = Expense(
             title: title,
             amount: amountValue,
             date: date,
-            category: type == .expense ? category : .otros, // Categoría por defecto para ingresos
+            category: category,
             type: type,
             time: timeString,
             isPending: isPending,
@@ -143,24 +147,17 @@ struct EditExpenseView: View {
         )
         
         viewModel.updateExpense(updatedExpense)
-        dismiss()
+        presentationMode.wrappedValue.dismiss()
     }
 }
 
+#if DEBUG
 struct EditExpenseView_Previews: PreviewProvider {
     static var previews: some View {
-        Group {
-            EditExpenseView(
-                expense: Expense.sampleData[0],
-                viewModel: ExpenseViewModel()
-            )
-            .preferredColorScheme(.light)
-            
-            EditExpenseView(
-                expense: Expense.sampleData[0],
-                viewModel: ExpenseViewModel()
-            )
-            .preferredColorScheme(.dark)
-        }
+        EditExpenseView(
+            expense: Expense.sampleData[0],
+            viewModel: ExpenseViewModel()
+        )
     }
 }
+#endif
