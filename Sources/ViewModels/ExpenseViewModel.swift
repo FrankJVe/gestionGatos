@@ -3,6 +3,7 @@ import SwiftUI
 
 class ExpenseViewModel: ObservableObject {
     @Published private(set) var expenses: [Expense] = []
+    @Published private(set) var currentMonthExpenses: [Expense] = []
     private let repository: ExpenseRepositoryProtocol
     
     init(repository: ExpenseRepositoryProtocol = ExpenseRepository()) {
@@ -14,6 +15,7 @@ class ExpenseViewModel: ObservableObject {
     
     func loadExpenses() {
         expenses = repository.getAllExpenses()
+        updateCurrentMonthExpenses()
     }
     
     func addExpense(_ expense: Expense) {
@@ -31,14 +33,31 @@ class ExpenseViewModel: ObservableObject {
         loadExpenses()
     }
     
+    // MARK: - Private Methods
+    
+    private func updateCurrentMonthExpenses() {
+        let now = Date()
+        let calendar = Calendar.current
+        currentMonthExpenses = expenses.filter {
+            calendar.component(.month, from: $0.date) == calendar.component(.month, from: now) &&
+            calendar.component(.year, from: $0.date) == calendar.component(.year, from: now)
+        }
+    }
+    
+    private func startOfMonth(for date: Date) -> Date {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.year, .month], from: date)
+        return calendar.date(from: components) ?? date
+    }
+    
     // MARK: - Computed Properties
     
     var totalIncome: Double {
-        expenses.filter { $0.type == .income }.reduce(0) { $0 + $1.amount }
+        currentMonthExpenses.filter { $0.type == .income }.reduce(0) { $0 + $1.amount }
     }
     
     var totalExpenses: Double {
-        expenses.filter { $0.type == .expense }.reduce(0) { $0 + abs($1.amount) }
+        currentMonthExpenses.filter { $0.type == .expense }.reduce(0) { $0 + abs($1.amount) }
     }
     
     var totalBalance: Double {
@@ -54,55 +73,28 @@ class ExpenseViewModel: ObservableObject {
         return (totalBalance / totalIncome) * 100
     }
     
-    var expensesByCategory: [Expense.Category: Double] {
-        var result: [Expense.Category: Double] = [:]
-        for expense in expenses where expense.type == .expense {
-            result[expense.category, default: 0] += abs(expense.amount)
-        }
-        return result
-    }
-    
-    // MARK: - Filtering Methods
-    
-    func expenses(for category: Expense.Category) -> [Expense] {
-        expenses.filter { $0.category == category }
-    }
-    
-    func expenses(forType type: Expense.TransactionType) -> [Expense] {
-        expenses.filter { $0.type == type }
-    }
-    
-    func expenses(forMonth month: Date) -> [Expense] {
+    // MARK: - Month Selection
+    var availableMonthYears: [Date] {
         let calendar = Calendar.current
-        return expenses.filter {
-            calendar.component(.month, from: $0.date) == calendar.component(.month, from: month) &&
-            calendar.component(.year, from: $0.date) == calendar.component(.year, from: month)
-        }
+        let allDates = expenses.map { $0.date }
+        
+        // Get unique dates and sort them in descending order (newest first)
+        return Array(Set(allDates.map { startOfMonth(for: $0) })).sorted(by: >)
     }
     
-    // MARK: - Statistics Methods
+    // MARK: - Expense Statistics
     
-    func totalAmount(for category: Expense.Category, type: Expense.TransactionType) -> Double {
-        expenses(for: category)
-            .filter { $0.type == type }
-            .reduce(0) { $0 + abs($1.amount) }
+    var expensesByCategory: [(category: Expense.Category, amount: Double)] {
+        let expenseDict = Dictionary(grouping: currentMonthExpenses.filter { $0.type == .expense }) { $0.category }
+        return expenseDict.map { (category, expenses) in
+            (category: category, amount: expenses.reduce(0) { $0 + abs($1.amount) })
+        }.sorted { $0.amount > $1.amount }
     }
     
-    func percentageForCategory(_ category: Expense.Category, type: Expense.TransactionType) -> Double {
-        let categoryTotal = totalAmount(for: category, type: type)
-        let total = type == .expense ? totalExpenses : totalIncome
-        return total > 0 ? (categoryTotal / total) * 100 : 0
-    }
-    
-    func monthlyExpenses(for date: Date = Date()) -> Double {
-        expenses(forMonth: date)
-            .filter { $0.type == .expense }
-            .reduce(0) { $0 + abs($1.amount) }
-    }
-    
-    func monthlyIncome(for date: Date = Date()) -> Double {
-        expenses(forMonth: date)
-            .filter { $0.type == .income }
-            .reduce(0) { $0 + $1.amount }
+    var incomeByCategory: [(category: Expense.Category, amount: Double)] {
+        let incomeDict = Dictionary(grouping: currentMonthExpenses.filter { $0.type == .income }) { $0.category }
+        return incomeDict.map { (category, expenses) in
+            (category: category, amount: expenses.reduce(0) { $0 + $1.amount })
+        }.sorted { $0.amount > $1.amount }
     }
 }

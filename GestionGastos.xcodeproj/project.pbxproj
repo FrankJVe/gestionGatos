@@ -22,6 +22,7 @@
 		A91520A08B365BA6376D5BC8 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B70DACAB692BB4B3E63EAF /* DashboardView.swift */; };
 		AD741F1B41742ABAC8190AC7 /* TestPieChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35321FCD99D6D4C8CBD112E2 /* TestPieChartView.swift */; };
 		B894CE805830361E966AF02B /* PieChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 473AEC6B21F1F01D6A1AB920 /* PieChartView.swift */; };
+		BF659D49CAFFE8AE2EE142F0 /* TestData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21B4F8B8C817A9699657B0C6 /* TestData.swift */; };
 		CA57208984F9651E0C091F3B /* SimpleCircleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38D65E203D8D4C22AF01411F /* SimpleCircleView.swift */; };
 		DB3DF0C2BDE73542173085AD /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 752113BAD2A0A13B24829955 /* StatsView.swift */; };
 		E58A52BFC33A9A41F234F741 /* Expense.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CF219A026C2FBC7FE8C6666 /* Expense.swift */; };
@@ -32,6 +33,7 @@
 		1229E83E5D686FB5B5CE90A1 /* CategoryDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryDetailView.swift; sourceTree = "<group>"; };
 		1CF219A026C2FBC7FE8C6666 /* Expense.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Expense.swift; sourceTree = "<group>"; };
 		1FD77F3B30910DF5D5F59885 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		21B4F8B8C817A9699657B0C6 /* TestData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestData.swift; sourceTree = "<group>"; };
 		35321FCD99D6D4C8CBD112E2 /* TestPieChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestPieChartView.swift; sourceTree = "<group>"; };
 		38D65E203D8D4C22AF01411F /* SimpleCircleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleCircleView.swift; sourceTree = "<group>"; };
 		4432A6E985CBA3E674B0DF52 /* GestionGastos.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = GestionGastos.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -105,6 +107,7 @@
 			isa = PBXGroup;
 			children = (
 				831FFD88E6B4544EF2DC250A /* Calendar+Extensions.swift */,
+				21B4F8B8C817A9699657B0C6 /* TestData.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -242,6 +245,7 @@
 				B894CE805830361E966AF02B /* PieChartView.swift in Sources */,
 				CA57208984F9651E0C091F3B /* SimpleCircleView.swift in Sources */,
 				DB3DF0C2BDE73542173085AD /* StatsView.swift in Sources */,
+				BF659D49CAFFE8AE2EE142F0 /* TestData.swift in Sources */,
 				AD741F1B41742ABAC8190AC7 /* TestPieChartView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

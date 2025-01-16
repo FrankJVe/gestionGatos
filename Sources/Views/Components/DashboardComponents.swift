@@ -98,6 +98,7 @@ struct TransactionRowView: View {
 // Vista de Transacciones Recientes
 struct RecentTransactionsListView: View {
     let expenses: [Expense]
+    @ObservedObject var viewModel: ExpenseViewModel
     
     var body: some View {
         VStack(alignment: .leading, spacing: 15) {
@@ -111,7 +112,10 @@ struct RecentTransactionsListView: View {
                     .padding()
             } else {
                 ForEach(Array(expenses.prefix(5).enumerated()), id: \.element.id) { index, expense in
-                    TransactionRowView(expense: expense)
+                    NavigationLink(destination: EditExpenseView(expense: expense, viewModel: viewModel)) {
+                        TransactionRowView(expense: expense)
+                    }
+                    .buttonStyle(PlainButtonStyle())
                     
                     if index < expenses.prefix(5).count - 1 {
                         Divider()

@@ -30,7 +30,7 @@ struct DashboardView: View {
                     }
                     .padding(.horizontal, 8)
                     
-                    ExpenseDistributionView(expenses: viewModel.expenses)
+                    ExpenseDistributionView(expenses: viewModel.currentMonthExpenses)
                         .padding()
                         .background(Color(.systemBackground))
                         .cornerRadius(12)
@@ -38,7 +38,7 @@ struct DashboardView: View {
                         .shadow(color: Color.white.opacity(0.2), radius: 8, x: 0, y: 0)
                         .padding(.horizontal, 8)
                     
-                    RecentTransactionsListView(expenses: viewModel.expenses)
+                    RecentTransactionsListView(expenses: viewModel.currentMonthExpenses, viewModel: viewModel)
                 }
                 .padding(.vertical)
             }

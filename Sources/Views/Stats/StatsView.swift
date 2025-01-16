@@ -2,15 +2,20 @@ import SwiftUI
 
 // MARK: - Componentes auxiliares
 struct MonthSelectorView: View {
+    @ObservedObject var viewModel: ExpenseViewModel
+    @Binding var selectedDate: Date
+    
     var body: some View {
         HStack {
-            Text("1 ago. - 31 ago. 2024")
+            Text(monthYearString(from: selectedDate))
                 .foregroundColor(.gray)
             Spacer()
             Menu {
-                Button("Agosto 2024") {}
-                Button("Julio 2024") {}
-                Button("Junio 2024") {}
+                ForEach(viewModel.availableMonthYears, id: \.self) { date in
+                    Button(monthYearString(from: date)) {
+                        selectedDate = date
+                    }
+                }
             } label: {
                 HStack {
                     Text("Mes")
@@ -24,6 +29,13 @@ struct MonthSelectorView: View {
             }
         }
         .padding(.horizontal)
+    }
+    
+    private func monthYearString(from date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MM/yyyy"
+        formatter.locale = Locale(identifier: "es_ES")
+        return formatter.string(from: date)
     }
 }
 
@@ -135,8 +147,7 @@ struct CategoryListView: View {
     @ObservedObject var viewModel: ExpenseViewModel
     
     var sortedCategories: [(category: Expense.Category, amount: Double)] {
-        viewModel.expensesByCategory.map { (category: $0.key, amount: $0.value) }
-            .sorted { $0.amount > $1.amount }
+        viewModel.expensesByCategory
     }
     
     var body: some View {
@@ -186,32 +197,85 @@ struct CategoryListView: View {
     }
 }
 
+struct TransactionListView: View {
+    let expenses: [Expense]
+    let type: Expense.TransactionType
+    @ObservedObject var viewModel: ExpenseViewModel
+    
+    var filteredExpenses: [Expense] {
+        expenses.filter { $0.type == type }
+    }
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            if filteredExpenses.isEmpty {
+                Text("No hay \(type == .income ? "ingresos" : "gastos") registrados")
+                    .foregroundColor(.gray)
+                    .padding()
+            } else {
+                ForEach(filteredExpenses) { expense in
+                    NavigationLink(destination: EditExpenseView(expense: expense, viewModel: viewModel)) {
+                        HStack {
+                            Image(systemName: expense.category.icon)
+                                .foregroundColor(.white)
+                                .frame(width: 32, height: 32)
+                                .background(expense.category.color)
+                                .cornerRadius(8)
+                            
+                            VStack(alignment: .leading) {
+                                Text(expense.title)
+                                    .font(.system(.body))
+                                Text(expense.date.formatted(date: .abbreviated, time: .omitted))
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                            
+                            Spacer()
+                            
+                            Text("S/ \(expense.amount, specifier: "%.2f")")
+                                .fontWeight(.medium)
+                                .foregroundColor(type == .income ? .green : .red)
+                        }
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    
+                    Divider()
+                }
+            }
+        }
+        .padding(.horizontal)
+    }
+}
+
 // MARK: - Vista principal
 struct StatsView: View {
     @ObservedObject var viewModel: ExpenseViewModel
-    @State private var selectedMonth = Date()
     @State private var selectedTab = 0
-    
-    private let tabs = ["Ingresos", "Gastos", "No computable"]
+    @State private var selectedDate = Date()
     
     var body: some View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 20) {
-                    MonthSelectorView()
+                    MonthSelectorView(viewModel: viewModel, selectedDate: $selectedDate)
+                    
                     MonthlyBarChartView()
+                    
                     FinancialSummaryView()
-                    TabsView(selectedTab: $selectedTab, tabs: tabs)
-                    CategoryListView(viewModel: viewModel)
+                    
+                    TabsView(selectedTab: $selectedTab, tabs: ["Ingresos", "Gastos"])
+                    
+                    if selectedTab == 0 {
+                        // Vista de Ingresos
+                        TransactionListView(expenses: viewModel.currentMonthExpenses, type: .income, viewModel: viewModel)
+                    } else {
+                        // Vista de Gastos
+                        TransactionListView(expenses: viewModel.currentMonthExpenses, type: .expense, viewModel: viewModel)
+                    }
                 }
+                .padding(.vertical)
             }
-            .navigationTitle("Análisis")
-            .navigationBarItems(
-                trailing: Button(action: {}) {
-                    Text("Comparate")
-                        .foregroundColor(.blue)
-                }
-            )
+            .navigationTitle("Estadísticas")
         }
     }
 }

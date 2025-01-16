@@ -107,11 +107,7 @@ struct EditExpenseView: View {
                 }
             )
             .alert(isPresented: $showingAlert) {
-                Alert(
-                    title: Text("Error"),
-                    message: Text(alertMessage),
-                    dismissButton: .default(Text("OK"))
-                )
+                Alert(title: Text("Error"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
             }
         }
     }
@@ -123,7 +119,7 @@ struct EditExpenseView: View {
             return
         }
         
-        guard let amountValue = Double(amount.replacingOccurrences(of: ",", with: ".")) else {
+        guard let amountValue = Double(amount) else {
             alertMessage = "Por favor ingrese un monto válido"
             showingAlert = true
             return
@@ -133,17 +129,18 @@ struct EditExpenseView: View {
         formatter.dateFormat = "HH:mm"
         let timeString = formatter.string(from: time)
         
-        var updatedExpense = expense
-        updatedExpense.title = title
-        updatedExpense.amount = amountValue
-        updatedExpense.date = date
-        updatedExpense.category = category
-        updatedExpense.type = type
-        updatedExpense.time = timeString
-        updatedExpense.isPending = isPending
-        updatedExpense.repeatOption = repeatOption
-        updatedExpense.sheet = sheet
-        updatedExpense.currency = currency
+        let updatedExpense = Expense(
+            title: title,
+            amount: amountValue,
+            date: date,
+            category: category,
+            type: type,
+            time: timeString,
+            isPending: isPending,
+            repeatOption: repeatOption,
+            sheet: sheet,
+            currency: currency
+        )
         
         viewModel.updateExpense(updatedExpense)
         presentationMode.wrappedValue.dismiss()
