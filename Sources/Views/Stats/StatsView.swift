@@ -67,6 +67,8 @@ struct MonthlyBarChartView: View {
 }
 
 struct FinancialSummaryView: View {
+    @ObservedObject var viewModel: ExpenseViewModel
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -75,7 +77,7 @@ struct FinancialSummaryView: View {
                     .frame(width: 8, height: 8)
                 Text("Ingresos")
                 Spacer()
-                Text("S/ 625,48")
+                Text("S/ \(viewModel.totalIncome, specifier: "%.2f")")
                     .fontWeight(.medium)
             }
             
@@ -85,7 +87,7 @@ struct FinancialSummaryView: View {
                     .frame(width: 8, height: 8)
                 Text("Gastos")
                 Spacer()
-                Text("S/ 2327,07")
+                Text("S/ \(viewModel.totalExpenses, specifier: "%.2f")")
                     .fontWeight(.medium)
             }
             
@@ -97,21 +99,22 @@ struct FinancialSummaryView: View {
                             .frame(height: 4)
                         
                         Rectangle()
-                            .fill(Color.green)
-                            .frame(width: geometry.size.width * 0.39, height: 4)
+                            .fill(viewModel.balanceIsPositive ? Color.green : Color.red)
+                            .frame(width: geometry.size.width * CGFloat(min(abs(viewModel.totalBalance / viewModel.totalIncome), 1.0)), height: 4)
                     }
                 }
                 .frame(height: 4)
                 
-                Text("39% de S/ 5964 previstos")
+                Text("\(Int(abs(viewModel.totalBalance / viewModel.totalIncome * 100)))% del ingreso total")
                     .font(.caption)
                     .foregroundColor(.gray)
             }
             
-            Text("Neto")
+            Text("Balance Neto")
                 .foregroundColor(.gray)
-            Text("S/ -1701,59")
+            Text("S/ \(viewModel.totalBalance, specifier: "%.2f")")
                 .fontWeight(.medium)
+                .foregroundColor(viewModel.balanceIsPositive ? .green : .red)
         }
         .padding(.horizontal)
     }
@@ -251,17 +254,19 @@ struct TransactionListView: View {
 struct StatsView: View {
     @ObservedObject var viewModel: ExpenseViewModel
     @State private var selectedTab = 0
-    @State private var selectedDate = Date()
     
     var body: some View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 20) {
-                    MonthSelectorView(viewModel: viewModel, selectedDate: $selectedDate)
+                    MonthSelectorView(viewModel: viewModel, selectedDate: $viewModel.selectedDate)
+                        .onChange(of: viewModel.selectedDate) { _ in
+                            viewModel.loadExpenses()
+                        }
                     
                     MonthlyBarChartView()
                     
-                    FinancialSummaryView()
+                    FinancialSummaryView(viewModel: viewModel)
                     
                     TabsView(selectedTab: $selectedTab, tabs: ["Ingresos", "Gastos"])
                     

@@ -35,21 +35,7 @@ class ExpenseRepository: ExpenseRepositoryProtocol {
     }
     
     private func loadInitialData() {
-        // Aquí puedes mover los datos de ejemplo que estaban en el ViewModel
-        expenses = [
-            Expense(
-                title: "Sueldo Mensual",
-                amount: 5000.00,
-                date: Date(),
-                category: .otros,
-                type: .income,
-                time: "09:00",
-                isPending: false,
-                repeatOption: .never,
-                sheet: "Principal",
-                currency: "PEN"
-            ),
-            // ... otros gastos de ejemplo
-        ]
+        // Cargar los datos de prueba desde TestData
+        expenses = TestData.allTestExpenses
     }
 }

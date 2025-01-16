@@ -4,6 +4,7 @@ import SwiftUI
 class ExpenseViewModel: ObservableObject {
     @Published private(set) var expenses: [Expense] = []
     @Published private(set) var currentMonthExpenses: [Expense] = []
+    @Published var selectedDate: Date = Date()
     private let repository: ExpenseRepositoryProtocol
     
     init(repository: ExpenseRepositoryProtocol = ExpenseRepository()) {
@@ -36,11 +37,10 @@ class ExpenseViewModel: ObservableObject {
     // MARK: - Private Methods
     
     private func updateCurrentMonthExpenses() {
-        let now = Date()
         let calendar = Calendar.current
         currentMonthExpenses = expenses.filter {
-            calendar.component(.month, from: $0.date) == calendar.component(.month, from: now) &&
-            calendar.component(.year, from: $0.date) == calendar.component(.year, from: now)
+            calendar.component(.month, from: $0.date) == calendar.component(.month, from: selectedDate) &&
+            calendar.component(.year, from: $0.date) == calendar.component(.year, from: selectedDate)
         }
     }
     
@@ -50,6 +50,18 @@ class ExpenseViewModel: ObservableObject {
         return calendar.date(from: components) ?? date
     }
     
+    private func previousMonthBalance() -> Double {
+        let calendar = Calendar.current
+        guard let previousMonth = calendar.date(byAdding: .month, value: -1, to: selectedDate) else { return 0 }
+        
+        let previousMonthExpenses = expenses.filter {
+            calendar.component(.month, from: $0.date) == calendar.component(.month, from: previousMonth) &&
+            calendar.component(.year, from: $0.date) == calendar.component(.year, from: previousMonth)
+        }
+        
+        return previousMonthExpenses.reduce(0) { $0 + ($1.type == .income ? $1.amount : -$1.amount) }
+    }
+    
     // MARK: - Computed Properties
     
     var totalIncome: Double {
@@ -57,11 +69,11 @@ class ExpenseViewModel: ObservableObject {
     }
     
     var totalExpenses: Double {
-        currentMonthExpenses.filter { $0.type == .expense }.reduce(0) { $0 + abs($1.amount) }
+        currentMonthExpenses.filter { $0.type == .expense }.reduce(0) { $0 + $1.amount }
     }
     
     var totalBalance: Double {
-        totalIncome - totalExpenses
+        currentMonthExpenses.reduce(0) { $0 + ($1.type == .income ? $1.amount : -$1.amount) }
     }
     
     var balanceIsPositive: Bool {
@@ -71,6 +83,20 @@ class ExpenseViewModel: ObservableObject {
     var balancePercentage: Double {
         if totalIncome == 0 { return 0 }
         return (totalBalance / totalIncome) * 100
+    }
+    
+    var monthlyChangePercentage: Double {
+        let previousMonthBalance = previousMonthBalance()
+        guard previousMonthBalance != 0 else { return 0 }
+        return ((totalBalance - previousMonthBalance) / abs(previousMonthBalance)) * 100
+    }
+    
+    var expensesByCategory: [(category: Expense.Category, amount: Double)] {
+        let expensesByCategory = Dictionary(grouping: currentMonthExpenses.filter { $0.type == .expense }) { $0.category }
+        return Expense.Category.allCases.map { category in
+            let amount = expensesByCategory[category]?.reduce(0) { $0 + $1.amount } ?? 0
+            return (category: category, amount: amount)
+        }.sorted { $0.amount > $1.amount }
     }
     
     // MARK: - Month Selection
@@ -83,13 +109,6 @@ class ExpenseViewModel: ObservableObject {
     }
     
     // MARK: - Expense Statistics
-    
-    var expensesByCategory: [(category: Expense.Category, amount: Double)] {
-        let expenseDict = Dictionary(grouping: currentMonthExpenses.filter { $0.type == .expense }) { $0.category }
-        return expenseDict.map { (category, expenses) in
-            (category: category, amount: expenses.reduce(0) { $0 + abs($1.amount) })
-        }.sorted { $0.amount > $1.amount }
-    }
     
     var incomeByCategory: [(category: Expense.Category, amount: Double)] {
         let incomeDict = Dictionary(grouping: currentMonthExpenses.filter { $0.type == .income }) { $0.category }
