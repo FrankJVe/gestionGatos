@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		015634EECB97BA3B2BE9B560 /* ExpenseEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98CDA0D2D9E192B40B4FD70D /* ExpenseEnums.swift */; };
+		1507B2ADB936970D0D14F169 /* Calendar+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 831FFD88E6B4544EF2DC250A /* Calendar+Extensions.swift */; };
 		1A03A3D72FD0ED420D1BF405 /* ExpenseRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91E5698E35C2C908D92E4EC9 /* ExpenseRepository.swift */; };
 		282911C9504C3B042E4D0160 /* DashboardComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B018E04044E6A5AA4DC4A6C /* DashboardComponents.swift */; };
 		2A3D7E0256E989FBF26C70EA /* GestionGastosApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDD7828E416F56853D6597AB /* GestionGastosApp.swift */; };
@@ -39,8 +41,10 @@
 		60DA877E7541A5F9DEDF7DAA /* EditExpenseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditExpenseView.swift; sourceTree = "<group>"; };
 		6DC2D3288DCB1ACB3E9C573F /* AddExpenseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddExpenseView.swift; sourceTree = "<group>"; };
 		752113BAD2A0A13B24829955 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
+		831FFD88E6B4544EF2DC250A /* Calendar+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Calendar+Extensions.swift"; sourceTree = "<group>"; };
 		870338E2E31651645B689BAD /* ExpenseViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseViewModel.swift; sourceTree = "<group>"; };
 		91E5698E35C2C908D92E4EC9 /* ExpenseRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseRepository.swift; sourceTree = "<group>"; };
+		98CDA0D2D9E192B40B4FD70D /* ExpenseEnums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseEnums.swift; sourceTree = "<group>"; };
 		9BF6509BAABF7CF39946F5FE /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		FDD7828E416F56853D6597AB /* GestionGastosApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestionGastosApp.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -97,6 +101,14 @@
 			path = App;
 			sourceTree = "<group>";
 		};
+		35645017B310AF0BA2460E47 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				831FFD88E6B4544EF2DC250A /* Calendar+Extensions.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
 		35B911A808250495E32A5EB0 /* Expenses */ = {
 			isa = PBXGroup;
 			children = (
@@ -113,6 +125,7 @@
 				2F168924A249B3D216164DD9 /* App */,
 				8740CB2752595023F1128B53 /* Models */,
 				13FE53670A83A35217400422 /* Repositories */,
+				35645017B310AF0BA2460E47 /* Utils */,
 				16ECD43813995D18E8470B96 /* ViewModels */,
 				7EF82E20A167D263A66BE08B /* Views */,
 			);
@@ -134,6 +147,7 @@
 			isa = PBXGroup;
 			children = (
 				1CF219A026C2FBC7FE8C6666 /* Expense.swift */,
+				98CDA0D2D9E192B40B4FD70D /* ExpenseEnums.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -213,6 +227,7 @@
 			files = (
 				39A23952C9AE9C90A5FA2671 /* AddExpenseView.swift in Sources */,
 				5600E5EF59F8631C1800C58F /* AppSettings.swift in Sources */,
+				1507B2ADB936970D0D14F169 /* Calendar+Extensions.swift in Sources */,
 				8137479DE59FF3A60F96CFD9 /* CategoryDetailView.swift in Sources */,
 				4C5C588A58725FBF41E82C85 /* ContentView.swift in Sources */,
 				282911C9504C3B042E4D0160 /* DashboardComponents.swift in Sources */,
@@ -220,6 +235,7 @@
 				A91520A08B365BA6376D5BC8 /* DashboardView.swift in Sources */,
 				511B97B5A15CE11395795B45 /* EditExpenseView.swift in Sources */,
 				E58A52BFC33A9A41F234F741 /* Expense.swift in Sources */,
+				015634EECB97BA3B2BE9B560 /* ExpenseEnums.swift in Sources */,
 				1A03A3D72FD0ED420D1BF405 /* ExpenseRepository.swift in Sources */,
 				4A43D235CBB25EBD5FC5D3DE /* ExpenseViewModel.swift in Sources */,
 				2A3D7E0256E989FBF26C70EA /* GestionGastosApp.swift in Sources */,

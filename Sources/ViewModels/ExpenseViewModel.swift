@@ -1,11 +1,6 @@
 import Foundation
 import SwiftUI
 
-enum ExpenseType: String {
-    case income = "Income"
-    case expense = "Expense"
-}
-
 class ExpenseViewModel: ObservableObject {
     @Published private(set) var expenses: [Expense] = []
     private let repository: ExpenseRepositoryProtocol
